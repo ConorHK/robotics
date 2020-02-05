@@ -52,46 +52,56 @@ void swingRight(){
 
 task main()
 {
+
 	//----------Up
 	touchSensing(); // continue till wall detected with touch sensor
 
 	goBackwards();
 	sleep(2000);
 	turnLeft();
-	sleep(1800);
+	sleep(1750);
 	goForward();
 	sleep(2000);
 	//--------------line sensing ------
 
 	while(SensorValue(touchSensor) == 0){
-		while(SensorValue(colorSensor) == 5 && SensorValue(colorSensor) != 1){
+		while(SensorValue(colorSensor) == 5 && SensorValue(colorSensor) != 1 && SensorValue(touchSensor) == 0){
 			swingRight();
 		}
-		while(SensorValue(colorSensor) != 5 && SensorValue(colorSensor) != 1){
+		while(SensorValue(colorSensor) != 5 || SensorValue(colorSensor) == 1 && SensorValue(touchSensor) == 0){
 			swingLeft();
 		}
 	}
 
 	//---------------- reverse----------------
-	playSound(soundException);
+
 	turnLeft();
 	sleep(1700);
 	goBackwards();
-	sleep(3000);
+	sleep(3300);
+	// in calibration area needs to navigate to final area
 	while(SensorValue(touchSensor) == 0){
-	fastForward();
+		fastForward();
 	}
 	goBackwards();
-	sleep(200);
+	sleep(300);
 	turnLeft();
-	sleep(1800);
+	sleep(1650);
 	while(SensorValue(touchSensor) == 0){
-	fastForward();
+		fastForward();
 	}
+	goBackwards(); sleep(300);
 	turnLeft();
-	sleep(1800);
+	sleep(1700);
 	goForward();
-	sleep(2000);
+	sleep(1700);
+	swingRight();
+	sleep(1000);
+	while(SensorValue(sonarSensor) > 7){
+		goForward();
+	}
+
+
 
 
 
