@@ -57,7 +57,7 @@ task main()
 	goBackwards();
 	sleep(2000);
 	turnLeft();
-	sleep(1800);
+	sleep(1750);
 	goForward();
 	sleep(2000);
   //--------------------Up Finished-------------
@@ -67,40 +67,42 @@ task main()
   /* The robot follows the line until the wall at the end of the line is hit. It "swings" right while the color sensor detects *only* red ( its specified that it doesn't swing right when it sees black due to issues with the board being black and white ). When the sensor sees white (1) it swings left to try find the red line again.*/
 
 	while(SensorValue(touchSensor) == 0){
-		while(SensorValue(colorSensor) == 5 && SensorValue(colorSensor) != 1){
+		while(SensorValue(colorSensor) == 5 && SensorValue(colorSensor) != 1 && SensorValue(touchSensor) == 0){
 			swingRight();
 		}
-		while(SensorValue(colorSensor) != 5 && SensorValue(colorSensor) != 1){
+		while(SensorValue(colorSensor) != 5 || SensorValue(colorSensor) == 1 && SensorValue(touchSensor) == 0){
 			swingLeft();
 		}
 	}
   //--------------------Follow Line Fin--------
 
-	//--------------------Reverse----------------
-	playSound(soundException);
+<<<<<<< HEAD:Derek.c
+	//---------------- reverse----------------
+
 	turnLeft();
 	sleep(1700);
 	goBackwards();
-	sleep(3000);
-
-  //--------------------Reverse Fin------------
-
-  //--------------------Continue to Finish-----
+	sleep(3300);
+	// in calibration area needs to navigate to final area
 	while(SensorValue(touchSensor) == 0){
-	fastForward();
+		fastForward();
 	}
 
 	goBackwards();
-	sleep(200);
+	sleep(300);
 	turnLeft();
-	sleep(1800);
-
+	sleep(1650);
 	while(SensorValue(touchSensor) == 0){
-	fastForward();
+		fastForward();
 	}
-
+	goBackwards(); sleep(300);
 	turnLeft();
-	sleep(1800);
+	sleep(1700);
 	goForward();
-	sleep(2000);
+	sleep(1700);
+	swingRight();
+	sleep(1000);
+	while(SensorValue(sonarSensor) > 7){
+		goForward();
+	}
 }
