@@ -1,3 +1,4 @@
+/* Group 5: Assignment 1 */
 #pragma config(Sensor, S1,     touchSensor,    sensorEV3_Touch)
 #pragma config(Sensor, S2,     gyroSensor,     sensorEV3_Gyro, modeEV3Gyro_RateAndAngle)
 #pragma config(Sensor, S3,     colorSensor,    sensorEV3_Color, modeEV3Color_Color)
@@ -51,7 +52,7 @@ void touchSensing() {
 // Driver code
 task main()
 {
-	//--------------------Up--------------------
+	//--------------------Up----------------------
 	touchSensing(); // drives forward until wall is hit.
 
 	goBackwards();
@@ -74,16 +75,16 @@ task main()
 			swingLeft();
 		}
 	}
-  //--------------------Follow Line Fin--------
+  //-----------------Follow Line Fin-----------
 
-<<<<<<< HEAD:Derek.c
-	//---------------- reverse----------------
-
+	//-----------------Reverse-------------------
 	turnLeft();
 	sleep(1700);
 	goBackwards();
 	sleep(3300);
-	// in calibration area needs to navigate to final area
+  //-----------------Reverse Fin---------------
+
+	//-----------------Move to Finish------------
 	while(SensorValue(touchSensor) == 0){
 		fastForward();
 	}
@@ -92,17 +93,22 @@ task main()
 	sleep(300);
 	turnLeft();
 	sleep(1650);
+
 	while(SensorValue(touchSensor) == 0){
 		fastForward();
 	}
-	goBackwards(); sleep(300);
+
+	goBackwards();
+  sleep(300);
 	turnLeft();
 	sleep(1700);
 	goForward();
 	sleep(1700);
 	swingRight();
 	sleep(1000);
-	while(SensorValue(sonarSensor) > 7){
+
+  while(SensorValue(sonarSensor) > 7){
 		goForward();
 	}
+  //----------------FINISH--------------------
 }
