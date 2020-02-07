@@ -71,10 +71,16 @@ while(SensorValue(touchSensor) == NO_TOUCH){
 //-----------------Follow Line Fin-----------
 
 //-----------------Reverse-------------------
+goBackwards();
+sleep(200);
 turnLeft();
 sleep(1700);
 goBackwards();
 sleep(3300);
+setMotorSpeed(leftMotor, 0);
+setMotorSpeed(rightMotor, 0);
+sleep(1000);
+
 //-----------------Reverse Fin---------------
 
 //-----------------Move to Finish------------
@@ -83,7 +89,7 @@ touchSensing();
 goBackwards();
 sleep(300);
 turnLeft();
-sleep(1650);
+sleep(1700);
 
 touchSensing();
 
