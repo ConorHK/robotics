@@ -33,7 +33,8 @@ void swingLeft(){
 	setMotorSpeed(leftMotor, 22);
 	setMotorSpeed(rightMotor, 5);
 }
-void swingRight()
+
+void swingRight(){
 setMotorSpeed(leftMotor, 5);
 setMotorSpeed(rightMotor, 22);
 }
