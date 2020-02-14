@@ -16,7 +16,7 @@
 // Maximum number of entries stored in encoder values array, used for computing speed over some dt's
 #define MAX_ENCODER_VALUES ( 7 )
 // Enable history?
-//#define ENABLE_HISTORY
+#define ENABLE_HISTORY
 // History size for debugging
 #define HISTORY_SIZE ( 300 )
 // Power limit (+/- POWER_LIMIT) for motors
