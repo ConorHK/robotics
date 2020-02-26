@@ -13,7 +13,7 @@
 #define WHEEL_DIAMETER 42 // mm
 #define SAMPLE_TIME 22 // ms (value gotten from source EV3 block code, as of now unaware of purpose)
 #define WHEEL_RADIUS 0.021 // m
-#define SAMPLE_TIME_DIFFERENCE 1.5 // TODO number not understood
+#define SAMPLE_TIME_DIFFERENCE 1.5 // correcting sample time difference for delays created by loop
 #define MAX_POWER 100
 
 // Global variables.
@@ -105,16 +105,22 @@ constants readGyro(constants currentConstants){
   return currentConstants;
 }
 
+//Combines all the sensor values for the PID controller
 void combineSensorValues(constants currentConstants){
   currentConstants.angularVelocity;
   currentConstants.angle;
+
 
   robotSpeed; // global
 
   robotPosition; //global
   referencePosition; // function call
 
-  return //big TODO
+  return
+     ( robotPosition - referencePosition ) * contstants.robotPosition +
+     currentConstants.robotSpeed * contants.robotSpeed + currentConstants.robotSpeed +
+     currentConstants.angle + constants.angle + currentConstants.angularVelocity *
+     constants.angularVelocity
 }
 
 //PID learns from previous error and takes into consideration current state and future state.
