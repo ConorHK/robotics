@@ -10,16 +10,26 @@
 // Code by Conor Knowles, based on Laurens Balanc3r EV3 tutorial: http://robotsquare.com/2014/07/01/tutorial-ev3-self-balancing-robot/
 
 // Definitions of permanent values
-#define WHEEL_DIAMETER = 42; // mm
-#define SAMPLE_TIME = 22; // ms (value gotten from source EV3 block code, as of now unaware of purpose)
-#define WHEEL_RADIUS = 0.021 // m
+#define WHEEL_DIAMETER 42 // mm
+#define SAMPLE_TIME 22 // ms (value gotten from source EV3 block code, as of now unaware of purpose)
+#define WHEEL_RADIUS 0.021 // m
+#define SAMPLE_TIME_DIFFERENCE 1.5 // TODO number not understood
+#define MAX_POWER 100
 
 // Global variables.
 float robotSpeed; // m/s
 float robotPosition; // m
 
+bool outOfBounds = false;
+bool prevOutOfBounds = false;
+int outOfBoundsCount = 0;
+
+float gyroBias;
+float gyroRate;
+
 // struct definition for variable constants
 typedef struct constants {
+  float dt;
   float kp;
   float ki;
   float kd;
@@ -35,6 +45,8 @@ void initialize() {
 
   robotSpeed = 0.0; // global
   robotPosition = 0.0; //global
+
+  gyroBias();
 }
 
 constants setConstants(){
@@ -47,12 +59,23 @@ constants setConstants(){
   initialConstants.angle = 25.0; // gain
   initialConstants.wheelSpeed = 75.0;
   initialConstants.wheelPosition = 350.0;
+  initialConstants.dt = (SAMPLE_TIME + SAMPLE_TIME_DIFFERENCE) / 1000.0; // seconds
 
   return initialConstants;
 }
+float gyroBias(){
+  resetGyro(gyroSensor);
+  sleep(3000);
+  gyroBias = 0.0;
 
-float position(float prevReferencePosition, float speed){ //TODO speed not used yet
-  float referencePosition = (prevReferencePosition + speed) * dt; //TODO undefined variables
+  for(int i = 0; i < 100; i++){
+    gyroBias += getGyroRate(gyroSensor);
+  }
+  gyroBias /= 100; // get average
+}
+
+float position(float prevReferencePosition, float speed){
+  float referencePosition = (prevReferencePosition + speed) * dt;
   return referencePosition;
 }
 
@@ -61,12 +84,25 @@ void readEncoders(){
   long averageEncoderValue = (getMotorEncoder(rightMotor) + getMotorEncoder(leftMotor) / 2);
   robotPosition = WHEEL_RADIUS * averageEncoderValue; // global assignment, wheel radius times average of encoder values
 
-  robotSpeed = WHEEL_RADIUS * getMotorSpeed() / 57.3; //TODO function call not defined and 57.3 not understood.
+  robotSpeed = WHEEL_RADIUS * getMotorSpeed() / 57.3;
 }
 
-void readGyro(constants currentConstants){ //TODO work out function
+constants readGyro(constants currentConstants){
   currentConstants.angle;
   currentConstants.angularVelocity;
+
+  static float angleBias = 0.0; // estimate
+  float updateRatio = 0.2;
+  float currentGyroRate = getGyroRate(gyroSensor);
+
+  gyroBias = gyroBias * (1 - currentConstants.dt * updateRatio) + currentGyroRate * currentConstants.dt * updateRatio;
+  gyroRate = currentGyroRate - gyroBias;
+
+  angleBias = angleBias * (1 - dt * updateRatio) - (robotPosition/*TODO */ * ROBOT_POSITION_GAIN  / gainAngle) * dt * updateRatio;
+
+  currentConstants.angle += gyroRate * dt - angleBias;
+
+  return currentConstants;
 }
 
 void combineSensorValues(constants currentConstants){
@@ -78,15 +114,7 @@ void combineSensorValues(constants currentConstants){
   robotPosition; //global
   referencePosition; // function call
 
-  return (robotPosition - robotReferencePosition) * gainRobotPosition + robotSpeed * gainRobotSpeed + robotAngle * gainAngle + currentConstants.angularVelocity * gainAngularVelocity; //TODO undefined variables, work out return
-
-}
-void readConstants(constants currentConstants){
-  /*dt
-  ki
-  kp
-  kd*/
-//TODO work out function, not contained in original. gives values to PID.
+  return //big TODO
 }
 
 //PID learns from previous error and takes into consideration current state and future state.
@@ -98,8 +126,8 @@ float pid(constants currentConstants, float input, float referenceValue){
   static float integral = 0.0; // 'I' of PID, past error.
 
   float presentError = input - referenceValue; // 'P' of PID.
-  totalError += dt * presentError; //TODO dt not defined
-  derivative = (presentError - integral) / dt; //TODO dt not defined
+  totalError += currentConstants.dt * presentError;
+  derivative = (presentError - integral) / currentConstants.dt;
   integral = presentError; // set present error to past error for next loop
 
   return ((currentConstants.kd * derivative) + (totalError * ki) + (presentError * kp);
@@ -107,17 +135,71 @@ float pid(constants currentConstants, float input, float referenceValue){
 
 // checks for unaccurate PID output, the result of pid function is passed to this function.
 void errors(float output){
-  //TODO
-}
-//TODO function for turning the robot left & right. returns value for setMotorPower
-float getSteer(){}
+  //Currently uses global variables TODO: static local variables?
+ if(abs(pidOutput) > 100){
+  outOfBounds = true;
+  }
 
-void setMotorPower(float steering, float power){
-  //TODO
+  if( outOfBounds && prevOutOfBounds){
+    outOfBoundsCounter++;
+  } else {
+    outOfBoundsCounter = 0;
+  }
+
+  if(outOfBoundsCounter > 20) {
+    setMotorPower(0.0);
+    sleep(100);
+  }
 }
 
-//TODO sleep function? Probably unnecessary.
-void wait(){}
+void setMotorPower(float power){
+
+  if(power > POWER_LIMIT){
+    power = POWER_LIMIT;
+    } else if(power < -POWER_LIMIT){
+    power = -POWER_LIMIT;
+    }
+    setMotor(rightMotor,power);
+    setMotor(leftMotor,power);
+}
 
 //TODO driver code
-int main(void){}
+task main(){
+
+  int increment = 0;
+  //PID values
+  float pidOutput;
+  float pidReference = 0.0; //TODO
+
+  //Values for position
+  float referencePosition = 0.0;
+  float requestedSpeed = 0.0; //TODO
+
+  float sensors;
+
+  // constants variable
+  constants values;
+
+
+  initialize();
+  values = setConstants();
+
+  /* !----Loop-----! */
+  resetTimer(T1);
+  resetTimer(T2);
+
+  referencePosition = position(referencePosition,requestedSpeed);
+  readEncoders(); // update state of robot
+  values = readGyro();
+  sensors = combineSensorValues(values);
+
+  //PID
+  pidOutput = pid(values, sensors, reference);
+  errors(pidOutput);
+  setMotorPower(pidOutput);
+
+  increment++;
+
+  repeatUntil(getTimer(T2,milliseconds) > SAMPLE_TIME){}
+  resetTimer(T2);
+}
