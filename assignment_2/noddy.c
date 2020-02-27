@@ -32,10 +32,11 @@ float ki = 14.0;
 float kd = 0.005;
 float angularVelocity = 1.3;
 float angle = 25.0;
-float wheelSpeed = 75.0;
-float wheelPosition = 350.0;
+// unused float wheelSpeed = 75.0;
+// unused float wheelPosition = 350.0;
 float balanceRobotSpeed = 75;
 float balanceRobotPosition = 350.0;
+
 
 
 
@@ -52,6 +53,7 @@ float wheelSpeed;
 float wheelPosition;
 } constants;*/
 
+float getGyroBias();
 
 void initialize() {
 	resetMotorEncoder(rightMotor);
@@ -86,7 +88,8 @@ float getGyroBias(){
 	for(int i = 0; i < 100; i++){
 		gyroBias += getGyroRate(gyroSensor);
 	}
-	gyroBias /= 100; // get average
+	return 	gyroBias /= 100; // get average
+
 }
 
 float position(float prevReferencePosition, float speed){
@@ -120,14 +123,11 @@ void readGyro(){
 //Combines all the sensor values for the PID controller
 float combineSensorValues(float angularVelocity, float robotAngle,float robotPosition,float robotSpeed){
 
-	robotSpeed; // global
-	robotPosition; //global
-	referencePosition(); // function call
 
 	return
-	( robotPosition - referencePosition() ) * balanceRobotPosition +
+	( robotPosition - balanceRobotPosition) * balanceRobotPosition +
 	robotSpeed * balanceRobotSpeed + robotAngle +
- + angle + angularVelocity *
+	+ angle + angularVelocity *
 	angularVelocity;
 }
 
@@ -144,7 +144,7 @@ float pid(float input, float referenceValue){
 	derivative = (presentError - integral) / dt;
 	integral = presentError; // set present error to past error for next loop
 
-	return ((kd * derivative) + (totalError * ki) + (presentError * kp);
+	return ((kd * derivative) + (totalError * ki) + (presentError * kp));
 }
 
 void setMotorPower(float power){
@@ -161,7 +161,7 @@ void setMotorPower(float power){
 // checks for unaccurate PID output, the result of pid function is passed to this function.
 void errors(float output){
 	//Currently uses global variables TODO: static local variables?
-	if(abs(pidOutput) > 100){
+	if(abs( output) > 100){
 		outOfBounds = true;
 	}
 
@@ -200,7 +200,7 @@ task main(){
 	float referencePosition = 0.0;
 	float requestedSpeed = 0.0; //TODO
 
-	float sensors;
+	float sensors = combineSensorValues(angularVelocity,angle, robotPosition, robotSpeed);
 
 	// constants variable
 	//constants values;
@@ -215,13 +215,13 @@ task main(){
 
 	referencePosition = position(referencePosition,requestedSpeed);
 	readEncoders(); // update state of robot
-//	values = readGyro();
-//	sensors = combineSensorValues(values);
+	//	values = readGyro();
+	//	sensors = combineSensorValues(values);
 
 	//PID
-//	pidOutput = pid(values, sensors, reference);
-//	errors(pidOutput);
-//	setMotorPower(pidOutput);
+	pidOutput = pid(sensors,pidReference);
+	errors(pidOutput);
+	//setMotorPower(pidOutput);
 
 	increment++;
 
