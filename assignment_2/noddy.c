@@ -87,7 +87,7 @@ void readEncoders(){
 	robotSpeed = WHEEL_RADIUS * ((getMotorSpeed(motorA) + getMotorSpeed(motorB)) / 2) / 57.3;   //TODO?? using average of two motor speeds
 }
 
-constants readGyro(constants currentConstants){
+void readGyro(constants &currentConstants){
 	currentConstants.angle;
 	currentConstants.angularVelocity;
 
@@ -102,7 +102,7 @@ constants readGyro(constants currentConstants){
 
 	currentConstants.angle += gyroRate * dt - angleBias;
 
-	return currentConstants;
+	return;
 }
 
 //Combines all the sensor values for the PID controller
@@ -153,7 +153,9 @@ void errors(float output){
 	}
 
 	if(outOfBoundsCounter > 20) {
-		setMotorPower(0.0);
+ //   setMotorPower(0,0);
+	  motor[motorA] = 0;
+	  motor[motorB] = 0;
 		sleep(100);
 	}
 }
