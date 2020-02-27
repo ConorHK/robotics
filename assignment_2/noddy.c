@@ -21,7 +21,7 @@ float robotPosition; // m
 
 bool outOfBounds = false;
 bool prevOutOfBounds = false;
-int outOfBoundsCount = 0;
+int outOfBoundsCounter = 0;
 
 float gyroBias;
 float gyroRate;
@@ -139,6 +139,17 @@ float pid(constants currentConstants, float input, float referenceValue){
 	return ((currentConstants.kd * derivative) + (totalError * ki) + (presentError * kp);
 }
 
+void setMotorPower(float power){
+
+	if(power > MAX_POWER){  //was using POWER_LIMIT but wasn't defined, changed it to MAX_POWER
+		power = MAX_POWER;
+		} else if(power < -MAX_POWER){
+		power = -MAX_POWER;
+	}
+	setMotor(rightMotor,power);
+	setMotor(leftMotor,power);
+}
+
 // checks for unaccurate PID output, the result of pid function is passed to this function.
 void errors(float output){
 	//Currently uses global variables TODO: static local variables?
@@ -153,19 +164,17 @@ void errors(float output){
 	}
 
 	if(outOfBoundsCounter > 20) {
- //   setMotorPower(0,0);
-	  motor[motorA] = 0;
-	  motor[motorB] = 0;
+		setMotorPower(0,0);
 		sleep(100);
 	}
 }
 
 void setMotorPower(float power){
 
-	if(power > POWER_LIMIT){
-		power = POWER_LIMIT;
-		} else if(power < -POWER_LIMIT){
-		power = -POWER_LIMIT;
+	if(power > MAX_POWER){  //was using POWER_LIMIT but wasn't defined, changed it to MAX_POWER
+		power = MAX_POWER;
+		} else if(power < -MAX_POWER){
+		power = -MAX_POWER;
 	}
 	setMotor(rightMotor,power);
 	setMotor(leftMotor,power);
