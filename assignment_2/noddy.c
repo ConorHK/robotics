@@ -75,7 +75,7 @@ float getGyroBias(){
 }
 
 float position(float prevReferencePosition, float speed){
-	float referencePosition = (prevReferencePosition + speed) * dt;
+	float referencePosition = (prevReferencePosition + speed) * constants.dt;
 	return referencePosition;
 }
 
@@ -84,7 +84,7 @@ void readEncoders(){
 	long averageEncoderValue = (getMotorEncoder(rightMotor) + getMotorEncoder(leftMotor) / 2);
 	robotPosition = WHEEL_RADIUS * averageEncoderValue; // global assignment, wheel radius times average of encoder values
 
-	robotSpeed = WHEEL_RADIUS * getMotorSpeed() / 57.3;
+	robotSpeed = WHEEL_RADIUS * ((getMotorSpeed(motorA) + getMotorSpeed(motorB)) / 2) / 57.3;   //TODO?? using average of two motor speeds
 }
 
 constants readGyro(constants currentConstants){
