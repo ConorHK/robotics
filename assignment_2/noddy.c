@@ -13,7 +13,7 @@
 #define SAMPLE_TIME 22 // ms (value gotten from source EV3 block code, as of now unaware of purpose)
 #define WHEEL_RADIUS 0.021 // m
 #define SAMPLE_TIME_DIFFERENCE 1.5 // correcting sample time difference for delays created by loop
-#define MAX_POWER 100
+#define MAX_POWER 100.00
 
 // Global variables.
 float robotSpeed; // m/s
@@ -37,21 +37,8 @@ float angle = 25.0;
 float balanceRobotSpeed = 75;
 float balanceRobotPosition = 350.0;
 
+float pidOutput;
 
-
-
-
-// struct definition for variable constants
-/*typedef struct {
-float dt;
-float kp;
-float ki;
-float kd;
-float angularVelocity;
-float angle;
-float wheelSpeed;
-float wheelPosition;
-} constants;*/
 
 float getGyroBias();
 
@@ -65,20 +52,6 @@ void initialize() {
 
 	getGyroBias();
 }
-
-/*void setConstants(constants &initialConstants){
-
-initialConstants.kp = 0.6;
-initialConstants.ki = 14.0;
-initialConstants.kd = 0.005;
-initialConstants.angularVelocity = 1.3; // gain
-initialConstants.angle = 25.0; // gain
-initialConstants.wheelSpeed = 75.0;
-initialConstants.wheelPosition = 350.0;
-initialConstants.dt = (SAMPLE_TIME + SAMPLE_TIME_DIFFERENCE) / 1000.0; // seconds
-
-return;
-}*/
 
 float getGyroBias(){
 	resetGyro( gyroSensor );
@@ -173,28 +146,17 @@ void errors(float output){
 	}
 
 	if(outOfBoundsCounter > 20) {
-		setMotorPower(0.0);
+		setMotorPower(0);
 		sleep(100);
 	}
 }
 
-void setMotorPower(float power){
-
-	if(power > MAX_POWER){  	//was using POWER_LIMIT but wasn't defined, changed it to MAX_POWER
-		power = MAX_POWER;
-		} else if(power < -MAX_POWER){
-		power = -MAX_POWER;
-	}
-	setMotor(rightMotor,power);
-	setMotor(leftMotor,power);
-}
 
 //TODO driver code
 task main(){
 
 	int increment = 0;
 	//PID values
-	float pidOutput;
 	float pidReference = 0.0; //TODO
 
 	//Values for position
@@ -216,7 +178,7 @@ task main(){
 
 	referencePosition = position(referencePosition,requestedSpeed);
 	readEncoders(); // update state of robot
- 	readGyro();
+	readGyro();
 	sensors = combineSensorValues(angularVelocity,angle, robotPosition, robotSpeed);
 
 	//PID
