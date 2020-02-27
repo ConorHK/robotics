@@ -1,4 +1,3 @@
-
 #pragma config(Sensor, S2,     gyroSensor,     sensorEV3_Gyro, modeEV3Gyro_Rate)
 #pragma config(Sensor, S4,     remoteSensor,   sensorEV3_IRSensor, modeEV3IR_Remote)
 #pragma config(Motor,  motorA,          rightMotor,    tmotorEV3_Large, openLoop, driveRight, encoder)
@@ -29,183 +28,184 @@ float gyroRate;
 
 // struct definition for variable constants
 typedef struct constants {
-  float dt;
-  float kp;
-  float ki;
-  float kd;
-  float angularVelocity;
-  float angle;
-  float wheelSpeed;
-  float wheelPosition;
+	float dt;
+	float kp;
+	float ki;
+	float kd;
+	float angularVelocity;
+	float angle;
+	float wheelSpeed;
+	float wheelPosition;
 } constants;
 
 void initialize() {
-  resetMotorEncoder(rightMotor);
-  resetMotorEncoder(leftMotor);
+	resetMotorEncoder(rightMotor);
+	resetMotorEncoder(leftMotor);
 
-  robotSpeed = 0.0; // global
-  robotPosition = 0.0; //global
+	robotSpeed = 0.0; // global
+	robotPosition = 0.0; //global
 
-  gyroBias();
+	getGyroBias();
 }
 
-constants setConstants(){
-  constants initialConstants;
+ constants setConstants(){
+	constants initialConstants;
 
-  initialConstants.kp = 0.6;
-  initialConstants.ki = 14.0;
-  initialConstants.kd = 0.005;
-  initialConstants.angularVelocity = 1.3; // gain
-  initialConstants.angle = 25.0; // gain
-  initialConstants.wheelSpeed = 75.0;
-  initialConstants.wheelPosition = 350.0;
-  initialConstants.dt = (SAMPLE_TIME + SAMPLE_TIME_DIFFERENCE) / 1000.0; // seconds
+	initialConstants.kp = 0.6;
+	initialConstants.ki = 14.0;
+	initialConstants.kd = 0.005;
+	initialConstants.angularVelocity = 1.3; // gain
+	initialConstants.angle = 25.0; // gain
+	initialConstants.wheelSpeed = 75.0;
+	initialConstants.wheelPosition = 350.0;
+	initialConstants.dt = (SAMPLE_TIME + SAMPLE_TIME_DIFFERENCE) / 1000.0; // seconds
 
-  return initialConstants;
+	return initialConstants;
 }
-float gyroBias(){
-  resetGyro(gyroSensor);
-  sleep(3000);
-  gyroBias = 0.0;
 
-  for(int i = 0; i < 100; i++){
-    gyroBias += getGyroRate(gyroSensor);
-  }
-  gyroBias /= 100; // get average
+float getGyroBias(){
+	resetGyro(gyroSensor);
+	sleep(3000);
+	gyroBias = 0.0;
+
+	for(int i = 0; i < 100; i++){
+		gyroBias += getGyroRate(gyroSensor);
+	}
+	gyroBias /= 100; // get average
 }
 
 float position(float prevReferencePosition, float speed){
-  float referencePosition = (prevReferencePosition + speed) * dt;
-  return referencePosition;
+	float referencePosition = (prevReferencePosition + speed) * dt;
+	return referencePosition;
 }
 
 // updates robot speed and robot position variables.
 void readEncoders(){
-  long averageEncoderValue = (getMotorEncoder(rightMotor) + getMotorEncoder(leftMotor) / 2);
-  robotPosition = WHEEL_RADIUS * averageEncoderValue; // global assignment, wheel radius times average of encoder values
+	long averageEncoderValue = (getMotorEncoder(rightMotor) + getMotorEncoder(leftMotor) / 2);
+	robotPosition = WHEEL_RADIUS * averageEncoderValue; // global assignment, wheel radius times average of encoder values
 
-  robotSpeed = WHEEL_RADIUS * getMotorSpeed() / 57.3;
+	robotSpeed = WHEEL_RADIUS * getMotorSpeed() / 57.3;
 }
 
 constants readGyro(constants currentConstants){
-  currentConstants.angle;
-  currentConstants.angularVelocity;
+	currentConstants.angle;
+	currentConstants.angularVelocity;
 
-  static float angleBias = 0.0; // estimate
-  float updateRatio = 0.2;
-  float currentGyroRate = getGyroRate(gyroSensor);
+	static float angleBias = 0.0; // estimate
+	float updateRatio = 0.2;
+	float currentGyroRate = getGyroRate(gyroSensor);
 
-  gyroBias = gyroBias * (1 - currentConstants.dt * updateRatio) + currentGyroRate * currentConstants.dt * updateRatio;
-  gyroRate = currentGyroRate - gyroBias;
+	gyroBias = gyroBias * (1 - currentConstants.dt * updateRatio) + currentGyroRate * currentConstants.dt * updateRatio;
+	gyroRate = currentGyroRate - gyroBias;
 
-  angleBias = angleBias * (1 - dt * updateRatio) - (robotPosition/*TODO */ * ROBOT_POSITION_GAIN  / gainAngle) * dt * updateRatio;
+	angleBias = angleBias * (1 - dt * updateRatio) - (robotPosition/*TODO */ * ROBOT_POSITION_GAIN  / gainAngle) * dt * updateRatio;
 
-  currentConstants.angle += gyroRate * dt - angleBias;
+	currentConstants.angle += gyroRate * dt - angleBias;
 
-  return currentConstants;
+	return currentConstants;
 }
 
 //Combines all the sensor values for the PID controller
 void combineSensorValues(constants currentConstants){
-  currentConstants.angularVelocity;
-  currentConstants.angle;
+	currentConstants.angularVelocity;
+	currentConstants.angle;
 
 
-  robotSpeed; // global
+	robotSpeed; // global
 
-  robotPosition; //global
-  referencePosition; // function call
+	robotPosition; //global
+	referencePosition; // function call
 
-  return
-     ( robotPosition - referencePosition ) * contstants.robotPosition +
-     currentConstants.robotSpeed * contants.robotSpeed + currentConstants.robotSpeed +
-     currentConstants.angle + constants.angle + currentConstants.angularVelocity *
-     constants.angularVelocity
+	return
+	( robotPosition - referencePosition ) * contstants.robotPosition +
+	currentConstants.robotSpeed * contants.robotSpeed + currentConstants.robotSpeed +
+	currentConstants.angle + constants.angle + currentConstants.angularVelocity *
+	constants.angularVelocity
 }
 
 //PID learns from previous error and takes into consideration current state and future state.
 //Note: SAMPLE_TIME used in EV3 blocks however i'm unaware what its used for so it is currently left out.
 float pid(constants currentConstants, float input, float referenceValue){
-  // static float definitions
-  static float totalError = 0.0; // total error up till current.
-  static float derivative = 0.0; // 'D' of PID.
-  static float integral = 0.0; // 'I' of PID, past error.
+	// static float definitions
+	static float totalError = 0.0; // total error up till current.
+	static float derivative = 0.0; // 'D' of PID.
+	static float integral = 0.0; // 'I' of PID, past error.
 
-  float presentError = input - referenceValue; // 'P' of PID.
-  totalError += currentConstants.dt * presentError;
-  derivative = (presentError - integral) / currentConstants.dt;
-  integral = presentError; // set present error to past error for next loop
+	float presentError = input - referenceValue; // 'P' of PID.
+	totalError += currentConstants.dt * presentError;
+	derivative = (presentError - integral) / currentConstants.dt;
+	integral = presentError; // set present error to past error for next loop
 
-  return ((currentConstants.kd * derivative) + (totalError * ki) + (presentError * kp);
+	return ((currentConstants.kd * derivative) + (totalError * ki) + (presentError * kp);
 }
 
 // checks for unaccurate PID output, the result of pid function is passed to this function.
 void errors(float output){
-  //Currently uses global variables TODO: static local variables?
- if(abs(pidOutput) > 100){
-  outOfBounds = true;
-  }
+	//Currently uses global variables TODO: static local variables?
+	if(abs(pidOutput) > 100){
+		outOfBounds = true;
+	}
 
-  if( outOfBounds && prevOutOfBounds){
-    outOfBoundsCounter++;
-  } else {
-    outOfBoundsCounter = 0;
-  }
+	if( outOfBounds && prevOutOfBounds){
+		outOfBoundsCounter++;
+		} else {
+		outOfBoundsCounter = 0;
+	}
 
-  if(outOfBoundsCounter > 20) {
-    setMotorPower(0.0);
-    sleep(100);
-  }
+	if(outOfBoundsCounter > 20) {
+		setMotorPower(0.0);
+		sleep(100);
+	}
 }
 
 void setMotorPower(float power){
 
-  if(power > POWER_LIMIT){
-    power = POWER_LIMIT;
-    } else if(power < -POWER_LIMIT){
-    power = -POWER_LIMIT;
-    }
-    setMotor(rightMotor,power);
-    setMotor(leftMotor,power);
+	if(power > POWER_LIMIT){
+		power = POWER_LIMIT;
+		} else if(power < -POWER_LIMIT){
+		power = -POWER_LIMIT;
+	}
+	setMotor(rightMotor,power);
+	setMotor(leftMotor,power);
 }
 
 //TODO driver code
 task main(){
 
-  int increment = 0;
-  //PID values
-  float pidOutput;
-  float pidReference = 0.0; //TODO
+	int increment = 0;
+	//PID values
+	float pidOutput;
+	float pidReference = 0.0; //TODO
 
-  //Values for position
-  float referencePosition = 0.0;
-  float requestedSpeed = 0.0; //TODO
+	//Values for position
+	float referencePosition = 0.0;
+	float requestedSpeed = 0.0; //TODO
 
-  float sensors;
+	float sensors;
 
-  // constants variable
-  constants values;
+	// constants variable
+	constants values;
 
 
-  initialize();
-  values = setConstants();
+	initialize();
+	values = setConstants();
 
-  /* !----Loop-----! */
-  resetTimer(T1);
-  resetTimer(T2);
+	/* !----Loop-----! */
+	resetTimer(T1);
+	resetTimer(T2);
 
-  referencePosition = position(referencePosition,requestedSpeed);
-  readEncoders(); // update state of robot
-  values = readGyro();
-  sensors = combineSensorValues(values);
+	referencePosition = position(referencePosition,requestedSpeed);
+	readEncoders(); // update state of robot
+	values = readGyro();
+	sensors = combineSensorValues(values);
 
-  //PID
-  pidOutput = pid(values, sensors, reference);
-  errors(pidOutput);
-  setMotorPower(pidOutput);
+	//PID
+	pidOutput = pid(values, sensors, reference);
+	errors(pidOutput);
+	setMotorPower(pidOutput);
 
-  increment++;
+	increment++;
 
-  repeatUntil(getTimer(T2,milliseconds) > SAMPLE_TIME){}
-  resetTimer(T2);
+	repeatUntil(getTimer(T2,milliseconds) > SAMPLE_TIME){}
+	resetTimer(T2);
 }
