@@ -164,7 +164,7 @@ void errors(float output){
 	}
 
 	if(outOfBoundsCounter > 20) {
-		setMotorPower(0,0);
+		setMotorPower(0.0);
 		sleep(100);
 	}
 }
@@ -199,7 +199,7 @@ task main(){
 
 
 	initialize();
-	values = setConstants();
+	values = setConstants(values);
 
 	/* !----Loop-----! */
 	resetTimer(T1);
@@ -207,7 +207,7 @@ task main(){
 
 	referencePosition = position(referencePosition,requestedSpeed);
 	readEncoders(); // update state of robot
-	values = readGyro();
+	values = readGyro(contants);
 	sensors = combineSensorValues(values);
 
 	//PID
