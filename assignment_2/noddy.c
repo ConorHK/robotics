@@ -27,7 +27,7 @@ float gyroBias;
 float gyroRate;
 
 // struct definition for variable constants
-typedef struct constants {
+typedef struct {
 	float dt;
 	float kp;
 	float ki;
@@ -37,6 +37,7 @@ typedef struct constants {
 	float wheelSpeed;
 	float wheelPosition;
 } constants;
+
 
 void initialize() {
 	resetMotorEncoder(rightMotor);
@@ -48,8 +49,7 @@ void initialize() {
 	getGyroBias();
 }
 
- constants setConstants(){
-	constants initialConstants;
+void setConstants(constants &initialConstants){
 
 	initialConstants.kp = 0.6;
 	initialConstants.ki = 14.0;
@@ -60,7 +60,7 @@ void initialize() {
 	initialConstants.wheelPosition = 350.0;
 	initialConstants.dt = (SAMPLE_TIME + SAMPLE_TIME_DIFFERENCE) / 1000.0; // seconds
 
-	return initialConstants;
+	return;
 }
 
 float getGyroBias(){
