@@ -88,7 +88,8 @@ float getGyroBias(){
 	for(int i = 0; i < 100; i++){
 		gyroBias += getGyroRate(gyroSensor);
 	}
-	return 	gyroBias /= 100; // get average
+	gyroBias = gyroBias / 100; //get average
+	return 	gyroBias;
 
 }
 
@@ -179,7 +180,7 @@ void errors(float output){
 
 void setMotorPower(float power){
 
-	if(power > MAX_POWER){  //was using POWER_LIMIT but wasn't defined, changed it to MAX_POWER
+	if(power > MAX_POWER){  	//was using POWER_LIMIT but wasn't defined, changed it to MAX_POWER
 		power = MAX_POWER;
 		} else if(power < -MAX_POWER){
 		power = -MAX_POWER;
@@ -215,13 +216,13 @@ task main(){
 
 	referencePosition = position(referencePosition,requestedSpeed);
 	readEncoders(); // update state of robot
-	//	values = readGyro();
-	//	sensors = combineSensorValues(values);
+ 	readGyro();
+	sensors = combineSensorValues(angularVelocity,angle, robotPosition, robotSpeed);
 
 	//PID
 	pidOutput = pid(sensors,pidReference);
 	errors(pidOutput);
-	//setMotorPower(pidOutput);
+	setMotorPower(pidOutput);
 
 	increment++;
 
